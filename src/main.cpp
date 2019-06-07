@@ -119,7 +119,7 @@ void TC4_Handler()
 
     // store data and time for later analysis. Data will be stored every 3 ms for
     // memory efficiency
-    static uint8_t i = 0; // to help us to store data every 3 ms
+    static uint8_t i = 0; // to help us to store data every 5 ms
     if (i == 0)
     {
       position[indexData] = pMes;
@@ -134,7 +134,7 @@ void TC4_Handler()
       else
         digitalWrite(LED_BUILTIN, HIGH); // led turns on when all data has been stored
     }
-    i = (i + 1) % 3;
+    i = (i + 1) % DATA_SAMPLING_TIME;
   }
   TC4->COUNT8.INTFLAG.reg = 1;
 }

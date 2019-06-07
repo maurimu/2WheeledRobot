@@ -141,7 +141,7 @@ void BLEhandler()
     inChar = (char)ble.read();
     updateGain(inChar);
     break;
-  case 'd':
+  case 'i':
     printRobotData();
     break;
   case 'r':
@@ -163,7 +163,13 @@ void BLEhandler()
     pwm = ble.parseInt();
     setMotor(RIGHT, pwm);
     break;
+  case 'd':
+    // starts to store data, rewrites previous data
+    digitalWrite(LED_BUILTIN, LOW);
+    indexData = 0;
+    break;
   case 'u':
+    // upload all stored data to pc
     for (uint16_t i = 0; i < NB_DATA_STORED; i++)
     {
       Serial.print(position[i]);

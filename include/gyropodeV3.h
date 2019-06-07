@@ -4,7 +4,7 @@
 #define NB_TICKS_PER_METER 7522 // along x (direction of velocity)
 #define MAX_LINEAR_SPEED 170    // max linear speed so that the beta control can have a better performance
 #define NB_DATA_STORED 1000     // total time that we will store for analysis
-#define DATA_SAMPLING_TIME 3    // sampling time in milliseconds for data stored (not for control)
+#define DATA_SAMPLING_TIME 5    // sampling time in milliseconds for data stored (not for control)
 
 // ROBOT PARAMETERS
 extern const double R; // wheels radius 6.5cm expressed in mm
