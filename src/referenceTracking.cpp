@@ -1,8 +1,11 @@
 #include "referenceTracking.h"
 
-referenceTracking::referenceTracking()
+referenceTracking::referenceTracking(float accelerationTime, float maxVelocity, float sampleTime)
 {
     init();
+    _accelerationTime = accelerationTime;
+    _maxVelocity = maxVelocity;
+    _sampleTime = sampleTime;
 }
 
 void referenceTracking::init()
@@ -39,20 +42,21 @@ float referenceTracking::getCurrentRefence()
         if (abs(_currentVelocity) > abs(_maxVelocity))
             _state = CONST_VELOCITY;
         // we may have to start decelerating before reaching the max velocity...
-        if ((_dir && (_currentReference >= decelerateReference)) ||
-            (_dir && (_currentReference <= decelerateReference)))
+        if ((_dir == 1 && (_currentReference >= decelerateReference)) ||
+            (_dir == -1 && (_currentReference <= decelerateReference)))
             _state = DECELERATE;
         break;
     case CONST_VELOCITY:
         _currentVelocity = _dir * _maxVelocity;
         _currentReference += _currentVelocity * _sampleTime;
         decelerateReference = _reference - _dir * _currentVelocity * _currentVelocity / (2 * a);
-        if ((_dir && (_currentReference >= decelerateReference)) ||
-            (_dir && (_currentReference <= decelerateReference)))
+        // start decelerating when the computation says so
+        if ((_dir == 1 && (_currentReference >= decelerateReference)) ||
+            (_dir == -1 && (_currentReference <= decelerateReference)))
             _state = DECELERATE;
         break;
     case DECELERATE:
-        _currentVelocity -= _dir * a * _sampleTime;
+        _currentVelocity += _dir * -a * _sampleTime;
         _currentReference += _currentVelocity * _sampleTime;
         if (_currentVelocity * _dir <= 0)
         {

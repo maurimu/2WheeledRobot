@@ -18,12 +18,12 @@ private:
     float _currentVelocity = 0;
 
     // parameters:
-    float _accelerationTime = 1; // in seconds
-    float _maxVelocity = 300;    // in ticks/s
-    float _sampleTime = 0.001;   // in seconds
+    float _accelerationTime; // in seconds
+    float _maxVelocity;    // in ticks/s
+    float _sampleTime;   // in seconds
 
 public:
-    referenceTracking();
+    referenceTracking(float accelerationTime, float maxVelocity, float sampleTime);
     void init();
     void setAccelerationTime(float time) { _accelerationTime = time; };
     void setMaxVelocity(float velocity) { _maxVelocity = velocity; };

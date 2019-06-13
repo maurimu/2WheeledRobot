@@ -50,10 +50,16 @@ int8_t sign(int32_t val)
 /*-------------------------------------------------------------------------------------------
 TC4 Handler. the main control is executed in this part. runs every 1ms
 ---------------------------------------------------------------------------------------------*/
+
+referenceTracking pRefTracking(1, 400, 0.01);
+
 void TC4_Handler()
 {
   if (controllerActive)
   {
+    // use this counter i to do things with a period of more than 1 ms if needed
+    static uint16_t i = 0;
+
     // meassure of encoder values for both wheels
     int32_t posRight = getEncoder(RIGHT);
     int32_t posLeft = getEncoder(LEFT);
@@ -70,12 +76,19 @@ void TC4_Handler()
     double omegaRight = rightSpeed * 1000 * 2 * PI / (768 * 32);
     double omegaLeft = leftSpeed * 1000 * 2 * PI / (768 * 32);
 
+    // TRACKING OF REFERENCES (for smoother control)
+    static double tpRef = 0;
+    // tracking reference will be made each 100 ms
+    if (i % 100 == 0)
+    {
+      tpRef = pRefTracking.getCurrentRefence();
+    }
     // CONTROL OF POSITION AND VELOCITY OF THE ROBOT
     // we assume the robot cannot change beta (orientation) yet
     double pMes = (posLeft + posRight) / 2;
     double vMes = (omegaRight + omegaLeft) * R / 2;
-    double P_pos = Kp * (pRef - pMes); // proportional action on p
-    double D_pos = Kv * (vRef - vMes); // derivative action on p (velocity)
+    double P_pos = Kp * (tpRef - pMes); // proportional action on p
+    double D_pos = Kv * (vRef - vMes);  // derivative action on p (velocity)
     int32_t pvControl = P_pos + D_pos;
 
     // CONTROL OF THE ORIENTATION ANGLE OF THE ROBOT BETA
@@ -117,24 +130,25 @@ void TC4_Handler()
     setMotor(RIGHT, rightMotor);
     setMotor(LEFT, leftMotor);
 
-    // store data and time for later analysis. Data will be stored every 3 ms for
-    // memory efficiency
-    static uint8_t i = 0; // to help us to store data every 5 ms
-    if (i == 0)
+    // store data and time for later analysis. Data will be stored every DATA_SAMPLING_TIME ms
+    // to get more memory efficiency and store more data
+    if (i % DATA_SAMPLING_TIME == 0)
     {
-      position[indexData] = pMes;
-      velocity[indexData] = vMes;
-      beta[indexData] = betaMes;
-      theta[indexData] = thetaMes;
-      omega[indexData] = omegaMes;
-      outputLeft[indexData] = leftMotor;
-      outputRight[indexData] = rightMotor;
-      if (indexData < NB_DATA_STORED - 1)
+      if (indexData < NB_DATA_STORED)
+      {
+        position[indexData] = pMes;
+        velocity[indexData] = vMes;
+        beta[indexData] = betaMes;
+        theta[indexData] = thetaMes;
+        omega[indexData] = omegaMes;
+        outputLeft[indexData] = leftMotor;
+        outputRight[indexData] = rightMotor;
         indexData++;
+      }
       else
         digitalWrite(LED_BUILTIN, HIGH); // led turns on when all data has been stored
     }
-    i = (i + 1) % DATA_SAMPLING_TIME;
+    i++;
   }
   TC4->COUNT8.INTFLAG.reg = 1;
 }

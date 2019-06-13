@@ -121,6 +121,8 @@ void BLEhandler()
   case 'p':
     // position reference
     pRef = ble.parseFloat();
+    if (controllerActive)
+      pRefTracking.setReference(pRef);
     ble.print("pos ref = ");
     ble.println(pRef);
     break;
@@ -147,12 +149,14 @@ void BLEhandler()
   case 'r':
     // starts the control
     resetEncoders();
-    controllerActive = true;
     indexData = 0;
+    pRefTracking.setReference(pRef);
+    controllerActive = true;
     break;
   case 's':
-    // stops controller and motors
+    // stops controller, reinitialize reference tracking and stop motors
     controllerActive = false;
+    pRefTracking.init();
     setMotor(RIGHT, 0);
     setMotor(LEFT, 0);
     break;
