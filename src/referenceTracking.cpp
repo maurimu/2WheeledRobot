@@ -30,14 +30,14 @@ void referenceTracking::setReference(float ref)
 float referenceTracking::getCurrentRefence()
 {
     // the acceleration required to get to max velocity in the required time
-    const float a = _maxVelocity / (2 * _accelerationTime);
+    const float a = _maxVelocity / _accelerationTime;
     float decelerateReference;
     switch (_state)
     {
     case ACCELERATE:
         _currentVelocity += _dir * a * _sampleTime;
         _currentReference += _currentVelocity * _sampleTime;
-        decelerateReference = _reference - _dir * _currentVelocity * _currentVelocity / (4 * a);
+        decelerateReference = _reference - _dir * _currentVelocity * _currentVelocity / (2 * a);
         // when max velocity is reached switch to constant velocity
         if (abs(_currentVelocity) > abs(_maxVelocity))
             _state = CONST_VELOCITY;
@@ -49,7 +49,7 @@ float referenceTracking::getCurrentRefence()
     case CONST_VELOCITY:
         _currentVelocity = _dir * _maxVelocity;
         _currentReference += _currentVelocity * _sampleTime;
-        decelerateReference = _reference - _dir * _currentVelocity * _currentVelocity / (4 * a);
+        decelerateReference = _reference - _dir * _currentVelocity * _currentVelocity / (2 * a);
         // start decelerating when the computation says so
         if ((_dir == 1 && (_currentReference >= decelerateReference)) ||
             (_dir == -1 && (_currentReference <= decelerateReference)))

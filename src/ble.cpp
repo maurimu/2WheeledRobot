@@ -108,11 +108,11 @@ void printRobotData()
   ble.print(" - Ko: ");
   ble.println(Komega);
   ble.print("Kip: ");
-  ble.print(Kip);
+  ble.print(Kip, 4);
   ble.print(" - Kib: ");
-  ble.print(Kib);
+  ble.print(Kib, 4);
   ble.print(" - Kit: ");
-  ble.println(Kit);
+  ble.println(Kit, 4);
 
   // battery voltage
   ble.print("Bat: ");
@@ -162,6 +162,7 @@ void BLEhandler()
     resetEncoders();
     pRefTracking.init();
     pRefTracking.setReference(pRef);
+    delay(100);
     controllerActive = true;
     break;
   case 's':
@@ -205,11 +206,11 @@ void BLEhandler()
       Serial.print(theta[i]);
       Serial.print('\n');
     }
-    for (uint16_t i = 0; i < NB_DATA_STORED; i++)
-    {
-      Serial.print(omega[i]);
-      Serial.print('\n');
-    }
+    // for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+    // {
+    //   Serial.print(omega[i]);
+    //   Serial.print('\n');
+    // }
     for (uint16_t i = 0; i < NB_DATA_STORED; i++)
     {
       Serial.print(outputLeft[i]);

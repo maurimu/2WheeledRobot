@@ -8,7 +8,7 @@
 #define DATA_SAMPLING_TIME 5    // sampling time in milliseconds for data stored (not for control)
 
 // max values
-#define MAX_PINTEGRAL 50000
+#define MAX_PINTEGRAL 2000
 #define MAX_TINTEGRAL 1000
 #define MAX_BINTEGRAL 1000
 
@@ -63,7 +63,7 @@ extern volatile float position[NB_DATA_STORED];
 extern volatile float velocity[NB_DATA_STORED];
 extern volatile float beta[NB_DATA_STORED];
 extern volatile float theta[NB_DATA_STORED];
-extern volatile float omega[NB_DATA_STORED];
+//extern volatile float omega[NB_DATA_STORED];
 extern volatile int16_t outputLeft[NB_DATA_STORED];
 extern volatile int16_t outputRight[NB_DATA_STORED];
 extern volatile float posReference[NB_DATA_STORED];

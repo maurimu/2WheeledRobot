@@ -15,20 +15,20 @@ volatile bool controllerActive = false;
 volatile bool storeData = false;
 
 // REFERENCE VALUES (THE VALUES WE WANT THE STATE TO CONVERGE TO)
-volatile double pRef = 0;                    // ticks
-volatile double vRef = 0;                    // m/s
-volatile double betaRef = 0 * DEG_TO_RAD;    // deg
-volatile double thetaRef = 9.5 * DEG_TO_RAD; // deg
-volatile double omegaRef = 0;                // rad/s
+volatile double pRef = 0;                   // ticks
+volatile double vRef = 0;                   // m/s
+volatile double betaRef = 0 * DEG_TO_RAD;   // deg
+volatile double thetaRef = 11.5 * DEG_TO_RAD; // deg
+volatile double omegaRef = 0;               // rad/s
 
 // CONTROLLER'S GAINS
-volatile double Kp = -0.28;
-volatile double Kv = -77;
-volatile double Kip = 0;
-volatile double Kbeta = 0;
-volatile double Kib = 0;
-volatile double Ktheta = 400; //400
-volatile double Komega = 50;  //50
+volatile double Kp = -0.3;    // -0.28 //-5
+volatile double Kv = -15;     // -77 //-150
+volatile double Kip = 0.0004; // 0.001
+volatile double Kbeta = 25;   // 250
+volatile double Kib = 0;      //1.2
+volatile double Ktheta = 350; //400
+volatile double Komega = 30;  //50
 volatile double Kit = 0;
 
 // STORING OF DATA FOR LATER ANALYSIS
@@ -38,7 +38,7 @@ volatile float position[NB_DATA_STORED];
 volatile float velocity[NB_DATA_STORED];
 volatile float beta[NB_DATA_STORED];
 volatile float theta[NB_DATA_STORED];
-volatile float omega[NB_DATA_STORED];
+//volatile float omega[NB_DATA_STORED];
 volatile int16_t outputLeft[NB_DATA_STORED];
 volatile int16_t outputRight[NB_DATA_STORED];
 volatile float posReference[NB_DATA_STORED];
@@ -57,10 +57,14 @@ int8_t sign(int32_t val)
 TC4 Handler. the main control is executed in this part. runs every 1ms
 ---------------------------------------------------------------------------------------------*/
 
-referenceTracking pRefTracking(1.5, 150, 0.001);
+referenceTracking pRefTracking(2, 1500, 0.001);
 
 void TC4_Handler()
 {
+  static double pIntegral = 0;
+  static double betaIntegral = 0;
+  static double thetaIntegral = 0;
+
   if (controllerActive)
   {
     // use this counter i to do things with a period of more than 1 ms if needed
@@ -88,41 +92,38 @@ void TC4_Handler()
     tpRef = pRefTracking.getCurrentRefence();
 
     // CONTROL OF POSITION AND VELOCITY OF THE ROBOT
-    static double pIntegral = 0;
     // we assume the robot cannot change beta (orientation) yet
     double pMes = (posLeft + posRight) / 2;
     double vMes = (omegaRight + omegaLeft) * R / 2;
     double posError = tpRef - pMes;
     pIntegral += posError;
     // wind up of the integration
-    if (pIntegral > MAX_PINTEGRAL)
-      pIntegral = MAX_PINTEGRAL;
+    if (abs(pIntegral) > MAX_PINTEGRAL)
+      pIntegral = sign(pIntegral) * MAX_PINTEGRAL;
     double P_pos = Kp * posError;      // proportional action on p
     double D_pos = Kv * (vRef - vMes); // derivative action on p (velocity)
     double I_pos = Kip * pIntegral;    // integral action on p
     double pvControl = P_pos + D_pos + I_pos;
 
     // CONTROL OF THE ORIENTATION ANGLE OF THE ROBOT BETA
-    static double betaIntegral = 0;
     double betaMes = (posRight - posLeft) * 2 * PI / NB_TICKS_PER_TURN;
     double betaError = betaRef - betaMes;
     betaIntegral += betaError;
     // wind up of the integration
-    if (betaIntegral > MAX_BINTEGRAL)
-      betaIntegral = MAX_BINTEGRAL;
+    if (abs(betaIntegral) > MAX_BINTEGRAL)
+      betaIntegral = sign(betaIntegral) * MAX_BINTEGRAL;
     double P_beta = Kbeta * betaError;  // proportional action
     double I_beta = Kib * betaIntegral; // integral action
     double betaControl = P_beta + I_beta;
 
     // CONTROL OF THE SELF BALANCE ANGLE THETA
-    static double thetaIntegral = 0;
     double thetaMes = getCompAngle();
     double omegaMes = getGyroRate();
     double thetaError = thetaRef - thetaMes;
     thetaIntegral += thetaError;
     // wind up of the integration
-    if (thetaIntegral > MAX_TINTEGRAL)
-      thetaIntegral = MAX_TINTEGRAL;
+    if (abs(thetaIntegral) > MAX_TINTEGRAL)
+      thetaIntegral = sign(thetaIntegral) * MAX_TINTEGRAL;
     double P_theta = Ktheta * thetaError;            // proportional action on theta
     double D_theta = Komega * (omegaRef - omegaMes); // derivative action on theta (omega)
     double I_theta = Kit * thetaIntegral;            // integral action on theta
@@ -138,7 +139,7 @@ void TC4_Handler()
     // we fix the output value to this MIN_PWM value (unless it is 0 obviusly)
     if (abs(rightMotor) <= MIN_PWM)
     {
-      if (abs(rightMotor) < MIN_PWM / MIN_PWM)
+      if (abs(rightMotor) < 1)
         rightMotor = 0;
       else
         rightMotor = sign(rightMotor) * MIN_PWM; // we fix it to MIN_PWM mantaining the sign
@@ -146,7 +147,7 @@ void TC4_Handler()
     // same for the other motor
     if (abs(leftMotor) <= MIN_PWM)
     {
-      if (abs(leftMotor) < MIN_PWM / MIN_PWM)
+      if (abs(leftMotor) < 1)
         leftMotor = 0;
       else
         leftMotor = sign(leftMotor) * MIN_PWM;
@@ -168,7 +169,7 @@ void TC4_Handler()
           velocity[indexData] = vMes;
           beta[indexData] = betaMes;
           theta[indexData] = thetaMes;
-          omega[indexData] = omegaMes;
+          //omega[indexData] = omegaMes;
           outputLeft[indexData] = leftMotor;
           outputRight[indexData] = rightMotor;
           posReference[indexData] = tpRef;
@@ -182,6 +183,12 @@ void TC4_Handler()
       }
     }
     i++;
+  }
+  else
+  {
+    pIntegral = 0;
+    betaIntegral = 0;
+    thetaIntegral = 0;
   }
   TC4->COUNT8.INTFLAG.reg = 1;
 }
