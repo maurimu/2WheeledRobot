@@ -7,6 +7,11 @@
 #define NB_DATA_STORED 1000     // total time that we will store for analysis
 #define DATA_SAMPLING_TIME 5    // sampling time in milliseconds for data stored (not for control)
 
+// max values
+#define MAX_PINTEGRAL 50000
+#define MAX_TINTEGRAL 1000
+#define MAX_BINTEGRAL 1000
+
 extern referenceTracking pRefTracking;
 
 // ROBOT PARAMETERS
@@ -41,9 +46,12 @@ Komega: balance angle derivative gain, same as Kv
 -------------------------------------------------------------------------------------------*/
 extern volatile double Kp;
 extern volatile double Kv;
+extern volatile double Kip;
 extern volatile double Kbeta;
+extern volatile double Kib;
 extern volatile double Ktheta;
 extern volatile double Komega;
+extern volatile double Kit;
 
 // The main switch... should be set to true if we want the contorller to work
 // GLOBAL VARIABLE !

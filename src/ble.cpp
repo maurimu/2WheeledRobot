@@ -69,6 +69,11 @@ void updateGain(char whichGain)
   case 'o':
     Komega = ble.parseFloat();
     break;
+  case 'i':
+    Kip = ble.parseFloat();
+    Kib = ble.parseFloat();
+    Kit = ble.parseFloat();
+    break;
   }
 }
 
@@ -102,6 +107,12 @@ void printRobotData()
   ble.print(Ktheta);
   ble.print(" - Ko: ");
   ble.println(Komega);
+  ble.print("Kip: ");
+  ble.print(Kip);
+  ble.print(" - Kib: ");
+  ble.print(Kib);
+  ble.print(" - Kit: ");
+  ble.println(Kit);
 
   // battery voltage
   ble.print("Bat: ");

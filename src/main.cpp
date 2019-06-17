@@ -24,9 +24,12 @@ volatile double omegaRef = 0;                // rad/s
 // CONTROLLER'S GAINS
 volatile double Kp = -0.28;
 volatile double Kv = -77;
+volatile double Kip = 0;
 volatile double Kbeta = 0;
+volatile double Kib = 0;
 volatile double Ktheta = 400; //400
 volatile double Komega = 50;  //50
+volatile double Kit = 0;
 
 // STORING OF DATA FOR LATER ANALYSIS
 
@@ -85,23 +88,45 @@ void TC4_Handler()
     tpRef = pRefTracking.getCurrentRefence();
 
     // CONTROL OF POSITION AND VELOCITY OF THE ROBOT
+    static double pIntegral = 0;
     // we assume the robot cannot change beta (orientation) yet
     double pMes = (posLeft + posRight) / 2;
     double vMes = (omegaRight + omegaLeft) * R / 2;
-    double P_pos = Kp * (tpRef - pMes); // proportional action on p
-    double D_pos = Kv * (vRef - vMes);  // derivative action on p (velocity)
-    int32_t pvControl = P_pos + D_pos;
+    double posError = tpRef - pMes;
+    pIntegral += posError;
+    // wind up of the integration
+    if (pIntegral > MAX_PINTEGRAL)
+      pIntegral = MAX_PINTEGRAL;
+    double P_pos = Kp * posError;      // proportional action on p
+    double D_pos = Kv * (vRef - vMes); // derivative action on p (velocity)
+    double I_pos = Kip * pIntegral;    // integral action on p
+    double pvControl = P_pos + D_pos + I_pos;
 
     // CONTROL OF THE ORIENTATION ANGLE OF THE ROBOT BETA
+    static double betaIntegral = 0;
     double betaMes = (posRight - posLeft) * 2 * PI / NB_TICKS_PER_TURN;
-    double betaControl = Kbeta * (betaRef - betaMes); // only proportional action
+    double betaError = betaRef - betaMes;
+    betaIntegral += betaError;
+    // wind up of the integration
+    if (betaIntegral > MAX_BINTEGRAL)
+      betaIntegral = MAX_BINTEGRAL;
+    double P_beta = Kbeta * betaError;  // proportional action
+    double I_beta = Kib * betaIntegral; // integral action
+    double betaControl = P_beta + I_beta;
 
     // CONTROL OF THE SELF BALANCE ANGLE THETA
+    static double thetaIntegral = 0;
     double thetaMes = getCompAngle();
     double omegaMes = getGyroRate();
-    double P_theta = Ktheta * (thetaRef - thetaMes); // proportional action on theta
+    double thetaError = thetaRef - thetaMes;
+    thetaIntegral += thetaError;
+    // wind up of the integration
+    if (thetaIntegral > MAX_TINTEGRAL)
+      thetaIntegral = MAX_TINTEGRAL;
+    double P_theta = Ktheta * thetaError;            // proportional action on theta
     double D_theta = Komega * (omegaRef - omegaMes); // derivative action on theta (omega)
-    int32_t thetaOmegacontrol = P_theta + D_theta;
+    double I_theta = Kit * thetaIntegral;            // integral action on theta
+    double thetaOmegacontrol = P_theta + D_theta + I_theta;
 
     // SET THE FINAL OUTPUT
     // betaControl is negative for one of the wheels cause the motors have to turn in different
