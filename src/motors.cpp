@@ -44,12 +44,12 @@ void setMotor(uint8_t id, int16_t speed)
     if (id > 1)
         return; // in case someone screws it up xD
 
-    // make sure we stay in the interval [-255 255]
+    // make sure we stay in the interval [-MAX_PWM MAX_PWM]
     int16_t output;
-    if (speed > 255)
-        output = 255;
-    else if (speed < -255)
-        output = -255;
+    if (speed > MAX_PWM)
+        output = MAX_PWM;
+    else if (speed < -MAX_PWM)
+        output = -MAX_PWM;
     else
         output = speed;
 

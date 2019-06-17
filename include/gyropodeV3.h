@@ -49,11 +49,13 @@ extern volatile double Komega;
 // GLOBAL VARIABLE !
 extern volatile bool controllerActive;
 
-extern uint16_t indexData;
-extern float position[NB_DATA_STORED];
-extern float velocity[NB_DATA_STORED];
-extern float beta[NB_DATA_STORED];
-extern float theta[NB_DATA_STORED];
-extern float omega[NB_DATA_STORED];
-extern int16_t outputLeft[NB_DATA_STORED];
-extern int16_t outputRight[NB_DATA_STORED];
+extern volatile bool storeData;
+extern volatile uint16_t indexData;
+extern volatile float position[NB_DATA_STORED];
+extern volatile float velocity[NB_DATA_STORED];
+extern volatile float beta[NB_DATA_STORED];
+extern volatile float theta[NB_DATA_STORED];
+extern volatile float omega[NB_DATA_STORED];
+extern volatile int16_t outputLeft[NB_DATA_STORED];
+extern volatile int16_t outputRight[NB_DATA_STORED];
+extern volatile float posReference[NB_DATA_STORED];

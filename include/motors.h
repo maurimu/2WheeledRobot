@@ -9,7 +9,8 @@
 #define LEFT 0
 #endif
 
-#define MIN_PWM 85 // minimum pwm value that actually moves the robot
+#define MIN_PWM 85 // below this value the wheels wont turn
+#define MAX_PWM 200
 
 #define PIN_RIGHT_MOTOR_PWM_FWD 6  //TC3/WO[0]
 #define PIN_RIGHT_MOTOR_PWM_BCK 12 //TC3/WO[1]

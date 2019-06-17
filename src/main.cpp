@@ -12,6 +12,7 @@ see gyropodeV3.h for more info about the following parameters
 const double R = (6.5 / 2) / 100;
 
 volatile bool controllerActive = false;
+volatile bool storeData = false;
 
 // REFERENCE VALUES (THE VALUES WE WANT THE STATE TO CONVERGE TO)
 volatile double pRef = 0;                    // ticks
@@ -28,14 +29,16 @@ volatile double Ktheta = 400; //400
 volatile double Komega = 50;  //50
 
 // STORING OF DATA FOR LATER ANALYSIS
-uint16_t indexData = 0;
-float position[NB_DATA_STORED];
-float velocity[NB_DATA_STORED];
-float beta[NB_DATA_STORED];
-float theta[NB_DATA_STORED];
-float omega[NB_DATA_STORED];
-int16_t outputLeft[NB_DATA_STORED];
-int16_t outputRight[NB_DATA_STORED];
+
+volatile uint16_t indexData = 0;
+volatile float position[NB_DATA_STORED];
+volatile float velocity[NB_DATA_STORED];
+volatile float beta[NB_DATA_STORED];
+volatile float theta[NB_DATA_STORED];
+volatile float omega[NB_DATA_STORED];
+volatile int16_t outputLeft[NB_DATA_STORED];
+volatile int16_t outputRight[NB_DATA_STORED];
+volatile float posReference[NB_DATA_STORED];
 
 int8_t sign(int32_t val)
 {
@@ -51,7 +54,7 @@ int8_t sign(int32_t val)
 TC4 Handler. the main control is executed in this part. runs every 1ms
 ---------------------------------------------------------------------------------------------*/
 
-referenceTracking pRefTracking(1, 400, 0.01);
+referenceTracking pRefTracking(1.5, 150, 0.001);
 
 void TC4_Handler()
 {
@@ -78,11 +81,9 @@ void TC4_Handler()
 
     // TRACKING OF REFERENCES (for smoother control)
     static double tpRef = 0;
-    // tracking reference will be made each 100 ms
-    if (i % 100 == 0)
-    {
-      tpRef = pRefTracking.getCurrentRefence();
-    }
+    // tracking reference
+    tpRef = pRefTracking.getCurrentRefence();
+
     // CONTROL OF POSITION AND VELOCITY OF THE ROBOT
     // we assume the robot cannot change beta (orientation) yet
     double pMes = (posLeft + posRight) / 2;
@@ -132,21 +133,28 @@ void TC4_Handler()
 
     // store data and time for later analysis. Data will be stored every DATA_SAMPLING_TIME ms
     // to get more memory efficiency and store more data
-    if (i % DATA_SAMPLING_TIME == 0)
+    if (storeData == true)
     {
-      if (indexData < NB_DATA_STORED)
+      if (i % DATA_SAMPLING_TIME == 0)
       {
-        position[indexData] = pMes;
-        velocity[indexData] = vMes;
-        beta[indexData] = betaMes;
-        theta[indexData] = thetaMes;
-        omega[indexData] = omegaMes;
-        outputLeft[indexData] = leftMotor;
-        outputRight[indexData] = rightMotor;
-        indexData++;
+        if (indexData < NB_DATA_STORED)
+        {
+          position[indexData] = pMes;
+          velocity[indexData] = vMes;
+          beta[indexData] = betaMes;
+          theta[indexData] = thetaMes;
+          omega[indexData] = omegaMes;
+          outputLeft[indexData] = leftMotor;
+          outputRight[indexData] = rightMotor;
+          posReference[indexData] = tpRef;
+          indexData++;
+        }
+        else
+        {
+          digitalWrite(LED_BUILTIN, HIGH); // led turns on when all data has been stored
+          storeData = false;
+        }
       }
-      else
-        digitalWrite(LED_BUILTIN, HIGH); // led turns on when all data has been stored
     }
     i++;
   }

@@ -149,14 +149,13 @@ void BLEhandler()
   case 'r':
     // starts the control
     resetEncoders();
-    indexData = 0;
+    pRefTracking.init();
     pRefTracking.setReference(pRef);
     controllerActive = true;
     break;
   case 's':
-    // stops controller, reinitialize reference tracking and stop motors
+    // stops controller and stop motors
     controllerActive = false;
-    pRefTracking.init();
     setMotor(RIGHT, 0);
     setMotor(LEFT, 0);
     break;
@@ -171,6 +170,7 @@ void BLEhandler()
     // starts to store data, rewrites previous data
     digitalWrite(LED_BUILTIN, LOW);
     indexData = 0;
+    storeData = true;
     break;
   case 'u':
     // upload all stored data to pc
@@ -197,6 +197,21 @@ void BLEhandler()
     for (uint16_t i = 0; i < NB_DATA_STORED; i++)
     {
       Serial.print(omega[i]);
+      Serial.print('\n');
+    }
+    for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+    {
+      Serial.print(outputLeft[i]);
+      Serial.print('\n');
+    }
+    for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+    {
+      Serial.print(outputRight[i]);
+      Serial.print('\n');
+    }
+    for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+    {
+      Serial.print(posReference[i]);
       Serial.print('\n');
     }
     break;
