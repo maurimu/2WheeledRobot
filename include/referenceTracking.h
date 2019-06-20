@@ -11,7 +11,7 @@
 class referenceTracking
 {
 private:
-    int16_t _state;
+    uint8_t _state;
     int8_t _dir;
     float _reference;
     float _currentReference;
@@ -19,8 +19,8 @@ private:
 
     // parameters:
     float _accelerationTime; // in seconds
-    float _maxVelocity;    // in ticks/s
-    float _sampleTime;   // in seconds
+    float _maxVelocity;      // in ticks/s
+    float _sampleTime;       // in seconds
 
 public:
     referenceTracking(float accelerationTime, float maxVelocity, float sampleTime);
@@ -30,6 +30,8 @@ public:
     void setSampleTime(float time) { _sampleTime = time; };
     void setReference(float ref);
     float getCurrentRefence();
+    float getCurrentVelocity() { return _currentVelocity; };
+    uint8_t getState() { return _state; };
 };
 
 #endif

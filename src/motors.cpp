@@ -46,12 +46,9 @@ void setMotor(uint8_t id, int16_t speed)
 
     // make sure we stay in the interval [-MAX_PWM MAX_PWM]
     int16_t output;
-    if (speed > MAX_PWM)
-        output = MAX_PWM;
-    else if (speed < -MAX_PWM)
-        output = -MAX_PWM;
-    else
-        output = speed;
+    output = abs(speed);
+    if (output > 0)
+        output = constrain(output, MIN_PWM, MAX_PWM);
 
     // select which motor should be driven
     int pwm1, pwm2;
@@ -75,6 +72,6 @@ void setMotor(uint8_t id, int16_t speed)
     else
     { // backwards
         analogWrite(pwm1, 0);
-        analogWrite(pwm2, -output);
+        analogWrite(pwm2, output);
     }
 }

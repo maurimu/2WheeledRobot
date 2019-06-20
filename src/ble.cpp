@@ -52,27 +52,52 @@ to determine which gain shall be updated. See gyropodeV3.h for details about the
 ----------------------------------------------------------------------------------------*/
 void updateGain(char whichGain)
 {
+  char whichIntegralGain;
   switch (whichGain)
   {
   case 'p':
-    Kp = ble.parseFloat();
+    for (uint8_t i = 0; i < 4; i++)
+      Kp[i] = ble.parseFloat();
     break;
   case 'v':
-    Kv = ble.parseFloat();
+    for (uint8_t i = 0; i < 4; i++)
+      Kv[i] = ble.parseFloat();
     break;
   case 'b':
-    Kbeta = ble.parseFloat();
+    for (uint8_t i = 0; i < 4; i++)
+      Kbeta[i] = ble.parseFloat();
     break;
   case 't':
-    Ktheta = ble.parseFloat();
+    for (uint8_t i = 0; i < 4; i++)
+      Ktheta[i] = ble.parseFloat();
     break;
   case 'o':
-    Komega = ble.parseFloat();
+    for (uint8_t i = 0; i < 4; i++)
+      Komega[i] = ble.parseFloat();
     break;
   case 'i':
-    Kip = ble.parseFloat();
-    Kib = ble.parseFloat();
-    Kit = ble.parseFloat();
+    whichIntegralGain = ble.read();
+    switch (whichIntegralGain)
+    {
+    case 'p':
+      for (uint8_t i = 0; i < 4; i++)
+        Kip[i] = ble.parseFloat();
+      break;
+    case 'b':
+      for (uint8_t i = 0; i < 4; i++)
+        Kib[i] = ble.parseFloat();
+      break;
+    case 't':
+      for (uint8_t i = 0; i < 4; i++)
+        Kit[i] = ble.parseFloat();
+      break;
+    default:
+      ble.read();
+      break;
+    }
+    break;
+  default:
+    ble.read();
     break;
   }
 }
@@ -82,41 +107,156 @@ print important robot data over bluetooth, useful when using smartphone
 ---------------------------------------------------------------------------------------*/
 void printRobotData()
 {
-  // encoder values
+  // encoder values, orientation beta and balance theta
   int32_t posLeft = getEncoder(LEFT);
   int32_t posRight = getEncoder(RIGHT);
   ble.print("Current Pos: ");
-  ble.println((posLeft + posRight) / 2);
-  ble.print("Encoders: ");
-  ble.print(posLeft);
-  ble.print(" - ");
-  ble.println(posRight);
-
-  // balance angle theta
-  ble.print("theta: ");
+  ble.print((posLeft + posRight) / 2);
+  ble.print("  Beta: ");
+  ble.print((posRight - posLeft) * 2 * PI * RAD_TO_DEG / NB_TICKS_PER_TURN);
+  ble.print("  theta: ");
   ble.println(getCompAngle() * RAD_TO_DEG);
 
   // gains
-  ble.print("Kp: ");
-  ble.print(Kp);
-  ble.print(" - Kv: ");
-  ble.print(Kv);
-  ble.print(" - Kb: ");
-  ble.println(Kbeta);
-  ble.print("Kt: ");
-  ble.print(Ktheta);
-  ble.print(" - Ko: ");
-  ble.println(Komega);
-  ble.print("Kip: ");
-  ble.print(Kip, 4);
-  ble.print(" - Kib: ");
-  ble.print(Kib, 4);
-  ble.print(" - Kit: ");
-  ble.println(Kit, 4);
+  ble.print("Kp: {");
+  for (uint8_t i = 0; i < 4; i++)
+  {
+    ble.print(Kp[i]);
+    if (i < 3)
+      ble.print(" | ");
+  }
+  ble.println("}");
+
+  ble.print("Kv: {");
+  for (uint8_t i = 0; i < 4; i++)
+  {
+    ble.print(Kv[i]);
+    if (i < 3)
+      ble.print(" | ");
+  }
+  ble.println("}");
+
+  ble.print("Kip: {");
+  for (uint8_t i = 0; i < 4; i++)
+  {
+    ble.print(Kip[i]);
+    if (i < 3)
+      ble.print(" | ");
+  }
+  ble.println("}");
+
+  ble.print("Kb: {");
+  for (uint8_t i = 0; i < 4; i++)
+  {
+    ble.print(Kbeta[i]);
+    if (i < 3)
+      ble.print(" | ");
+  }
+  ble.println("}");
+
+  ble.print("Kib: {");
+  for (uint8_t i = 0; i < 4; i++)
+  {
+    ble.print(Kib[i]);
+    if (i < 3)
+      ble.print(" | ");
+  }
+  ble.println("}");
+
+  ble.print("Kt: {");
+  for (uint8_t i = 0; i < 4; i++)
+  {
+    ble.print(Ktheta[i]);
+    if (i < 3)
+      ble.print(" | ");
+  }
+  ble.println("}");
+
+  ble.print("Ko: {");
+  for (uint8_t i = 0; i < 4; i++)
+  {
+    ble.print(Komega[i]);
+    if (i < 3)
+      ble.print(" | ");
+  }
+  ble.println("}");
+
+  ble.print("Kit: {");
+  for (uint8_t i = 0; i < 4; i++)
+  {
+    ble.print(Kit[i]);
+    if (i < 3)
+      ble.print(" | ");
+  }
+  ble.println("}");
 
   // battery voltage
   ble.print("Bat: ");
   ble.println(batteryVoltage());
+}
+
+void uploadDataToComputer()
+{
+  for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  {
+    Serial.print(position[i]);
+    Serial.print('\n');
+  }
+  for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  {
+    Serial.print(velocity[i]);
+    Serial.print('\n');
+  }
+  for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  {
+    Serial.print(beta[i]);
+    Serial.print('\n');
+  }
+  for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  {
+    Serial.print(theta[i]);
+    Serial.print('\n');
+  }
+  for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  {
+    Serial.print(omega[i]);
+    Serial.print('\n');
+  }
+  for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  {
+    Serial.print(outputLeft[i]);
+    Serial.print('\n');
+  }
+  for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  {
+    Serial.print(outputRight[i]);
+    Serial.print('\n');
+  }
+  for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  {
+    Serial.print(posReference[i]);
+    Serial.print('\n');
+  }
+  for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  {
+    Serial.print(velReference[i]);
+    Serial.print('\n');
+  }
+  for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  {
+    Serial.print(pvControlOutput[i]);
+    Serial.print('\n');
+  }
+  for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  {
+    Serial.print(betaControlOutput[i]);
+    Serial.print('\n');
+  }
+  for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  {
+    Serial.print(thetaControlOutput[i]);
+    Serial.print('\n');
+  }
 }
 
 /*------------------------------------------------------------------------------------
@@ -186,46 +326,7 @@ void BLEhandler()
     break;
   case 'u':
     // upload all stored data to pc
-    for (uint16_t i = 0; i < NB_DATA_STORED; i++)
-    {
-      Serial.print(position[i]);
-      Serial.print('\n');
-    }
-    for (uint16_t i = 0; i < NB_DATA_STORED; i++)
-    {
-      Serial.print(velocity[i]);
-      Serial.print('\n');
-    }
-    for (uint16_t i = 0; i < NB_DATA_STORED; i++)
-    {
-      Serial.print(beta[i]);
-      Serial.print('\n');
-    }
-    for (uint16_t i = 0; i < NB_DATA_STORED; i++)
-    {
-      Serial.print(theta[i]);
-      Serial.print('\n');
-    }
-    // for (uint16_t i = 0; i < NB_DATA_STORED; i++)
-    // {
-    //   Serial.print(omega[i]);
-    //   Serial.print('\n');
-    // }
-    for (uint16_t i = 0; i < NB_DATA_STORED; i++)
-    {
-      Serial.print(outputLeft[i]);
-      Serial.print('\n');
-    }
-    for (uint16_t i = 0; i < NB_DATA_STORED; i++)
-    {
-      Serial.print(outputRight[i]);
-      Serial.print('\n');
-    }
-    for (uint16_t i = 0; i < NB_DATA_STORED; i++)
-    {
-      Serial.print(posReference[i]);
-      Serial.print('\n');
-    }
+    uploadDataToComputer();
     break;
   default: // if there is still data in the buffer, read to empty
     ble.read();
