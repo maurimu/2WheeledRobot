@@ -3,10 +3,10 @@
 
 #include "Arduino.h"
 
-#define ACCELERATE 1
-#define CONST_VELOCITY 2
-#define DECELERATE 3
-#define STOP 4
+#define ACCELERATE 0
+#define CONST_VELOCITY 1
+#define DECELERATE 2
+#define STOP 3
 
 class referenceTracking
 {

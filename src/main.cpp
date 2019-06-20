@@ -16,22 +16,22 @@ volatile bool storeData = false;
 volatile double motionState;
 
 // REFERENCE VALUES (THE VALUES WE WANT THE STATE TO CONVERGE TO)
-volatile double pRef = 0;                     // ticks
-volatile double vRef = 0;                     // m/s
-volatile double betaRef = 0 * DEG_TO_RAD;     // deg
-volatile double thetaRef = 11.5 * DEG_TO_RAD; // deg
-volatile double omegaRef = 0;                 // rad/s
+volatile double pRef = 0;                   // ticks
+volatile double vRef = 0;                   // m/s
+volatile double betaRef = 0 * DEG_TO_RAD;   // deg
+volatile double thetaRef = 14 * DEG_TO_RAD; // deg
+volatile double omegaRef = 0;               // rad/s
 
 // CONTROLLER'S GAINS
 // gains can change dynamically depending on the motion of the robot: {ACCELERATE, CONST_VELOCITY, DECELERATE, STOP}
-volatile double Kp[4] = {-4, -0.3, -0.1, -0.3};      // -0.28 //-5
-volatile double Kv[4] = {-20, -15, -10, -15};        // -77 //-150
-volatile double Kip[4] = {0, 0, 0, 0};               // 0.001
-volatile double Kbeta[4] = {25, 360, 25, 25};        // 250
-volatile double Kib[4] = {0, 0, 0, 0};               //1.2
-volatile double Ktheta[4] = {7000, 7000, 7500, 400}; //400
-volatile double Komega[4] = {700, 700, 750, 50};     //50
-volatile double Kit[4] = {0, 0, 0, 0};
+volatile double Kp[4] = {-0.8, -0.45, -0.23, -0.6};  // {-1.21, -0.6, -1.21, -0.6}
+volatile double Kv[4] = {-750, -750, -680, -450};    // {-100, -130, -100, -450}
+volatile double Kip[4] = {0, 0, 0, 0};               // {0, 0, 0, 0}
+volatile double Kbeta[4] = {27, 27, 27, 27};         // {25, 25, 25, 27}
+volatile double Kib[4] = {0, 0, 0, 0};               // {0 ,0 ,0 ,0}
+volatile double Ktheta[4] = {1200, 1000, 1500, 550}; // {1500, 1800, 2500, 550}
+volatile double Komega[4] = {150, 170, 150, 60};     // {100, 150, 200, 60}
+volatile double Kit[4] = {0, 0, 0, -0.0001};         // {0, 0, 0, -0.0001}
 
 // STORING OF DATA FOR LATER ANALYSIS
 
@@ -41,13 +41,15 @@ volatile float velocity[NB_DATA_STORED];
 volatile float beta[NB_DATA_STORED];
 volatile float theta[NB_DATA_STORED];
 volatile float omega[NB_DATA_STORED];
-volatile int16_t outputLeft[NB_DATA_STORED];
-volatile int16_t outputRight[NB_DATA_STORED];
+// volatile int16_t outputLeft[NB_DATA_STORED];
+// volatile int16_t outputRight[NB_DATA_STORED];
 volatile float posReference[NB_DATA_STORED];
 volatile float velReference[NB_DATA_STORED];
 volatile float pvControlOutput[NB_DATA_STORED];
 volatile float betaControlOutput[NB_DATA_STORED];
 volatile float thetaControlOutput[NB_DATA_STORED];
+volatile int16_t realOutputLeft[NB_DATA_STORED];
+volatile int16_t realOutputRight[NB_DATA_STORED];
 
 int8_t sign(int32_t val)
 {
@@ -63,7 +65,7 @@ int8_t sign(int32_t val)
 TC4 Handler. the main control is executed in this part. runs every 1ms
 ---------------------------------------------------------------------------------------------*/
 
-referenceTracking pRefTracking(2, 1500, 0.001);
+referenceTracking pRefTracking(2, 1200, 0.001);
 
 void TC4_Handler()
 {
@@ -97,7 +99,7 @@ void TC4_Handler()
     static double tvRef = 0;
     // tracking reference and velocity !! getCurrentVelocity() must be always called after getCurrentReference() !!
     tpRef = pRefTracking.getCurrentRefence();
-    //tvRef = pRefTracking.getCurrentVelocity() / NB_TICKS_PER_METER;
+    tvRef = pRefTracking.getCurrentVelocity() / NB_TICKS_PER_METER;
     // from reference tracking get the current motion state and choose the corresponding gains
     uint8_t chosenGain = pRefTracking.getState();
 
@@ -111,7 +113,7 @@ void TC4_Handler()
     double D_pos = Kv[chosenGain] * (tvRef - vMes); // derivative action on p (velocity)
     double I_pos = Kip[chosenGain] * pIntegral;     // integral action on p
     // wind-up I_pos
-    I_pos = constrain(I_pos, -255, 255);
+    I_pos = constrain(I_pos, -80, 80);
 
     double pvControl = P_pos + D_pos + I_pos;
 
@@ -140,12 +142,26 @@ void TC4_Handler()
     // SET THE FINAL OUTPUT
     // betaControl is negative for one of the wheels cause the motors have to turn in different
     // directions for the robot to turn (duh!!)
-    int16_t rightMotor = pvControl + thetaOmegacontrol + betaControl;
-    int16_t leftMotor = pvControl + thetaOmegacontrol - betaControl;
+    int16_t rightMotorOutput = pvControl + thetaOmegacontrol + betaControl;
+    int16_t leftMotorOutput = pvControl + thetaOmegacontrol - betaControl;
+
+    int16_t rightMotorPWM = rightMotorOutput;
+    int16_t leftMotorPWM = leftMotorOutput;
+
+    if (abs(rightMotorOutput) > 0)
+    {
+      int16_t val = map(abs(rightMotorOutput), 0, 255, MIN_PWM, MAX_PWM);
+      rightMotorPWM = sign(rightMotorOutput) * val;
+    }
+    if (abs(leftMotorOutput) > 0)
+    {
+      int16_t val = map(abs(leftMotorOutput), 0, 255, MIN_PWM, MAX_PWM);
+      leftMotorPWM = sign(leftMotorOutput) * val;
+    }
 
     // finally we can set the motors outputs
-    setMotor(RIGHT, rightMotor);
-    setMotor(LEFT, leftMotor);
+    setMotor(RIGHT, rightMotorPWM);
+    setMotor(LEFT, leftMotorPWM);
 
     // store data and time for later analysis. Data will be stored every DATA_SAMPLING_TIME ms
     // to get more memory efficiency and store more data
@@ -160,13 +176,15 @@ void TC4_Handler()
           beta[indexData] = betaMes;
           theta[indexData] = thetaMes;
           omega[indexData] = omegaMes;
-          outputLeft[indexData] = leftMotor;
-          outputRight[indexData] = rightMotor;
+          // outputLeft[indexData] = leftMotorOutput;
+          // outputRight[indexData] = rightMotorOutput;
           posReference[indexData] = tpRef;
           velReference[indexData] = tvRef;
           pvControlOutput[indexData] = pvControl;
           betaControlOutput[indexData] = betaControl;
           thetaControlOutput[indexData] = thetaOmegacontrol;
+          realOutputLeft[indexData] = leftMotorPWM;
+          realOutputRight[indexData] = leftMotorPWM;
           indexData++;
         }
         else

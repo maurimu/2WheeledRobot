@@ -222,16 +222,16 @@ void uploadDataToComputer()
     Serial.print(omega[i]);
     Serial.print('\n');
   }
-  for (uint16_t i = 0; i < NB_DATA_STORED; i++)
-  {
-    Serial.print(outputLeft[i]);
-    Serial.print('\n');
-  }
-  for (uint16_t i = 0; i < NB_DATA_STORED; i++)
-  {
-    Serial.print(outputRight[i]);
-    Serial.print('\n');
-  }
+  // for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  // {
+  //   Serial.print(outputLeft[i]);
+  //   Serial.print('\n');
+  // }
+  // for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  // {
+  //   Serial.print(outputRight[i]);
+  //   Serial.print('\n');
+  // }
   for (uint16_t i = 0; i < NB_DATA_STORED; i++)
   {
     Serial.print(posReference[i]);
@@ -257,6 +257,18 @@ void uploadDataToComputer()
     Serial.print(thetaControlOutput[i]);
     Serial.print('\n');
   }
+    for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  {
+    Serial.print(realOutputLeft[i]);
+    Serial.print('\n');
+  }
+  for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  {
+    Serial.print(realOutputRight[i]);
+    Serial.print('\n');
+  }
+  Serial.print(thetaRef);
+  Serial.print('\n');
 }
 
 /*------------------------------------------------------------------------------------
@@ -301,7 +313,6 @@ void BLEhandler()
     // starts the control
     resetEncoders();
     pRefTracking.init();
-    pRefTracking.setReference(pRef);
     delay(100);
     controllerActive = true;
     break;

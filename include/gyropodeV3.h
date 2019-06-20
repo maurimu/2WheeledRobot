@@ -5,7 +5,7 @@
 #define NB_TICKS_PER_METER 7522 // along x (direction of velocity)
 #define MAX_LINEAR_SPEED 170    // max linear speed so that the beta control can have a better performance
 #define NB_DATA_STORED 500      // total time that we will store for analysis
-#define DATA_SAMPLING_TIME 10   // sampling time in milliseconds for data stored (not for control)
+#define DATA_SAMPLING_TIME 20   // sampling time in milliseconds for data stored (not for control)
 
 // max values
 #define MAX_PINTEGRAL 2000
@@ -71,3 +71,5 @@ extern volatile float velReference[NB_DATA_STORED];
 extern volatile float pvControlOutput[NB_DATA_STORED];
 extern volatile float betaControlOutput[NB_DATA_STORED];
 extern volatile float thetaControlOutput[NB_DATA_STORED];
+extern volatile int16_t realOutputLeft[NB_DATA_STORED];
+extern volatile int16_t realOutputRight[NB_DATA_STORED];

@@ -49,7 +49,6 @@ void setMotor(uint8_t id, int16_t speed)
     output = abs(speed);
     if (output > 0)
         output = constrain(output, MIN_PWM, MAX_PWM);
-
     // select which motor should be driven
     int pwm1, pwm2;
     if (id == RIGHT)
