@@ -10,7 +10,7 @@
 #endif
 
 #define MIN_PWM 85 // below this value the wheels wont turn
-#define MAX_PWM 200
+#define MAX_PWM 255
 
 #define PIN_RIGHT_MOTOR_PWM_FWD 6  //TC3/WO[0]
 #define PIN_RIGHT_MOTOR_PWM_BCK 12 //TC3/WO[1]

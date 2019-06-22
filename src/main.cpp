@@ -16,22 +16,22 @@ volatile bool storeData = false;
 volatile double motionState;
 
 // REFERENCE VALUES (THE VALUES WE WANT THE STATE TO CONVERGE TO)
-volatile double pRef = 0;                   // ticks
-volatile double vRef = 0;                   // m/s
-volatile double betaRef = 0 * DEG_TO_RAD;   // deg
-volatile double thetaRef = 14 * DEG_TO_RAD; // deg
-volatile double omegaRef = 0;               // rad/s
+volatile double pRef = 0;                     // ticks
+volatile double vRef = 0;                     // m/s
+volatile double betaRef = 0;                  // deg
+volatile double thetaRef = 11.5 * DEG_TO_RAD; // deg
+volatile double omegaRef = 0;                 // rad/s
 
 // CONTROLLER'S GAINS
 // gains can change dynamically depending on the motion of the robot: {ACCELERATE, CONST_VELOCITY, DECELERATE, STOP}
-volatile double Kp[4] = {-0.8, -0.45, -0.23, -0.6};  // {-1.21, -0.6, -1.21, -0.6}
-volatile double Kv[4] = {-750, -750, -680, -450};    // {-100, -130, -100, -450}
-volatile double Kip[4] = {0, 0, 0, 0};               // {0, 0, 0, 0}
-volatile double Kbeta[4] = {27, 27, 27, 27};         // {25, 25, 25, 27}
-volatile double Kib[4] = {0, 0, 0, 0};               // {0 ,0 ,0 ,0}
-volatile double Ktheta[4] = {1200, 1000, 1500, 550}; // {1500, 1800, 2500, 550}
-volatile double Komega[4] = {150, 170, 150, 60};     // {100, 150, 200, 60}
-volatile double Kit[4] = {0, 0, 0, -0.0001};         // {0, 0, 0, -0.0001}
+volatile double Kp[4] = {-0.53, -0.95, -0.01, -0.15};   // {-1.21, -0.6, -1.21, -0.6}
+volatile double Kv[4] = {-0.15, -0.06, -0.08, -0.08}; // {-100, -130, -100, -450}
+volatile double Kip[4] = {0, 0, 0, 0};                // {0, 0, 0, 0}
+volatile double Kbeta[4] = {0.23, 0.23, 0.23, 0.23};  // {25, 25, 25, 27}
+volatile double Kib[4] = {0, 0, 0, 0};                // {0 ,0 ,0 ,0}
+volatile double Ktheta[4] = {600, 600, 600, 600};     // {1500, 1800, 2500, 550}
+volatile double Komega[4] = {60, 60, 60, 60};         // {100, 150, 200, 60}
+volatile double Kit[4] = {0, 0, 0, 0};                // {0, 0, 0, -0.0001}
 
 // STORING OF DATA FOR LATER ANALYSIS
 
@@ -65,7 +65,7 @@ int8_t sign(int32_t val)
 TC4 Handler. the main control is executed in this part. runs every 1ms
 ---------------------------------------------------------------------------------------------*/
 
-referenceTracking pRefTracking(2, 1200, 0.001);
+referenceTracking pRefTracking(2, MAX_SPEED_TICKS / 2, 0.001);
 
 void TC4_Handler()
 {
@@ -87,26 +87,24 @@ void TC4_Handler()
     // to compute the actual speed in rad/s we consider the following:
     // divide by 32 -> ticks/ms
     // multiply by 1000 -> ticks/s
-    // divide by 768 -> turns/s
-    // multiply by 2pi -> rad/s
     int32_t leftSpeed, rightSpeed;
     getSpeed(leftSpeed, rightSpeed);
-    double omegaRight = rightSpeed * 1000 * 2 * PI / (768 * 32);
-    double omegaLeft = leftSpeed * 1000 * 2 * PI / (768 * 32);
+    double omegaRight = rightSpeed * 1000 / (32);
+    double omegaLeft = leftSpeed * 1000 / (32);
 
     // TRACKING OF REFERENCES (for smoother control)
     static double tpRef = 0;
     static double tvRef = 0;
     // tracking reference and velocity !! getCurrentVelocity() must be always called after getCurrentReference() !!
     tpRef = pRefTracking.getCurrentRefence();
-    tvRef = pRefTracking.getCurrentVelocity() / NB_TICKS_PER_METER;
+    tvRef = pRefTracking.getCurrentVelocity();
     // from reference tracking get the current motion state and choose the corresponding gains
-    uint8_t chosenGain = pRefTracking.getState();
+    uint8_t chosenGain = pRefTracking.getState(); //pRefTracking.getState();
 
     // CONTROL OF POSITION AND VELOCITY OF THE ROBOT
     // we assume the robot cannot change beta (orientation) yet
     double pMes = (posLeft + posRight) / 2;
-    double vMes = (omegaRight + omegaLeft) * R / 2;
+    double vMes = (omegaRight + omegaLeft) / 2;
     double posError = tpRef - pMes;
     pIntegral += posError;
     double P_pos = Kp[chosenGain] * posError;       // proportional action on p
@@ -118,8 +116,8 @@ void TC4_Handler()
     double pvControl = P_pos + D_pos + I_pos;
 
     // CONTROL OF THE ORIENTATION ANGLE OF THE ROBOT BETA
-    double betaMes = (posRight - posLeft) * 2 * PI / NB_TICKS_PER_TURN;
-    double betaError = betaRef - betaMes;
+    double betaMes = (posRight - posLeft) * RAD_TO_DEG * (2 * PI) / NB_TICKS_PER_TURN; // in deg
+    double betaError = betaRef - betaMes;                                              // we put betaRef in ticks since we receive it in rad
     betaIntegral += betaError;
     double P_beta = Kbeta[chosenGain] * betaError;  // proportional action
     double I_beta = Kib[chosenGain] * betaIntegral; // integral action
@@ -145,17 +143,19 @@ void TC4_Handler()
     int16_t rightMotorOutput = pvControl + thetaOmegacontrol + betaControl;
     int16_t leftMotorOutput = pvControl + thetaOmegacontrol - betaControl;
 
+    // map the output for each motor to the correct bounds of PWM_MIN and PWM_MAX
     int16_t rightMotorPWM = rightMotorOutput;
     int16_t leftMotorPWM = leftMotorOutput;
-
     if (abs(rightMotorOutput) > 0)
     {
       int16_t val = map(abs(rightMotorOutput), 0, 255, MIN_PWM, MAX_PWM);
+      val = constrain(val, MIN_PWM, MAX_PWM);
       rightMotorPWM = sign(rightMotorOutput) * val;
     }
     if (abs(leftMotorOutput) > 0)
     {
       int16_t val = map(abs(leftMotorOutput), 0, 255, MIN_PWM, MAX_PWM);
+      val = constrain(val, MIN_PWM, MAX_PWM);
       leftMotorPWM = sign(leftMotorOutput) * val;
     }
 

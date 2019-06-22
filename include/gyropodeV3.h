@@ -6,6 +6,7 @@
 #define MAX_LINEAR_SPEED 170    // max linear speed so that the beta control can have a better performance
 #define NB_DATA_STORED 500      // total time that we will store for analysis
 #define DATA_SAMPLING_TIME 20   // sampling time in milliseconds for data stored (not for control)
+#define MAX_SPEED_TICKS 2400    // max speed the motor can produce with PWM of 255
 
 // max values
 #define MAX_PINTEGRAL 2000

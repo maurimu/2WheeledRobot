@@ -121,7 +121,7 @@ void printRobotData()
   ble.print("Kp: {");
   for (uint8_t i = 0; i < 4; i++)
   {
-    ble.print(Kp[i]);
+    ble.print(Kp[i], 3);
     if (i < 3)
       ble.print(" | ");
   }
@@ -130,7 +130,7 @@ void printRobotData()
   ble.print("Kv: {");
   for (uint8_t i = 0; i < 4; i++)
   {
-    ble.print(Kv[i]);
+    ble.print(Kv[i], 3);
     if (i < 3)
       ble.print(" | ");
   }
@@ -257,7 +257,7 @@ void uploadDataToComputer()
     Serial.print(thetaControlOutput[i]);
     Serial.print('\n');
   }
-    for (uint16_t i = 0; i < NB_DATA_STORED; i++)
+  for (uint16_t i = 0; i < NB_DATA_STORED; i++)
   {
     Serial.print(realOutputLeft[i]);
     Serial.print('\n');
@@ -291,9 +291,9 @@ void BLEhandler()
     break;
   case 'b':
     // orientation beta reference in degrees
-    betaRef = ble.parseFloat() * DEG_TO_RAD;
+    betaRef = ble.parseFloat();
     ble.print("beta ref = ");
-    ble.println(betaRef * RAD_TO_DEG);
+    ble.println(betaRef);
     break;
   case 't':
     // balance theta reference in degrees
