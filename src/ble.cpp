@@ -269,6 +269,8 @@ void uploadDataToComputer()
   }
   Serial.print(thetaRef);
   Serial.print('\n');
+  Serial.print(betaRef);
+  Serial.print('\n');
 }
 
 /*------------------------------------------------------------------------------------
