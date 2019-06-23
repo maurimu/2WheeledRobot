@@ -119,73 +119,73 @@ void printRobotData()
 
   // gains
   ble.print("Kp: {");
-  for (uint8_t i = 0; i < 4; i++)
+  for (uint8_t i = 0; i < 2; i++)
   {
     ble.print(Kp[i], 3);
-    if (i < 3)
+    if (i < 1)
       ble.print(" | ");
   }
   ble.println("}");
 
   ble.print("Kv: {");
-  for (uint8_t i = 0; i < 4; i++)
+  for (uint8_t i = 0; i < 2; i++)
   {
     ble.print(Kv[i], 3);
-    if (i < 3)
+    if (i < 1)
       ble.print(" | ");
   }
   ble.println("}");
 
   ble.print("Kip: {");
-  for (uint8_t i = 0; i < 4; i++)
+  for (uint8_t i = 0; i < 2; i++)
   {
-    ble.print(Kip[i]);
-    if (i < 3)
+    ble.print(Kip[i], 5);
+    if (i < 1)
       ble.print(" | ");
   }
   ble.println("}");
 
   ble.print("Kb: {");
-  for (uint8_t i = 0; i < 4; i++)
+  for (uint8_t i = 0; i < 2; i++)
   {
     ble.print(Kbeta[i]);
-    if (i < 3)
+    if (i < 1)
       ble.print(" | ");
   }
   ble.println("}");
 
   ble.print("Kib: {");
-  for (uint8_t i = 0; i < 4; i++)
+  for (uint8_t i = 0; i < 2; i++)
   {
     ble.print(Kib[i]);
-    if (i < 3)
+    if (i < 1)
       ble.print(" | ");
   }
   ble.println("}");
 
   ble.print("Kt: {");
-  for (uint8_t i = 0; i < 4; i++)
+  for (uint8_t i = 0; i < 2; i++)
   {
     ble.print(Ktheta[i]);
-    if (i < 3)
+    if (i < 1)
       ble.print(" | ");
   }
   ble.println("}");
 
   ble.print("Ko: {");
-  for (uint8_t i = 0; i < 4; i++)
+  for (uint8_t i = 0; i < 2; i++)
   {
     ble.print(Komega[i]);
-    if (i < 3)
+    if (i < 1)
       ble.print(" | ");
   }
   ble.println("}");
 
   ble.print("Kit: {");
-  for (uint8_t i = 0; i < 4; i++)
+  for (uint8_t i = 0; i < 2; i++)
   {
     ble.print(Kit[i]);
-    if (i < 3)
+    if (i < 1)
       ble.print(" | ");
   }
   ble.println("}");

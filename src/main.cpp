@@ -23,15 +23,15 @@ volatile double thetaRef = 11.5 * DEG_TO_RAD; // deg
 volatile double omegaRef = 0;                 // rad/s
 
 // CONTROLLER'S GAINS
-// gains can change dynamically depending on the motion of the robot: {ACCELERATE, CONST_VELOCITY, DECELERATE, STOP}
-volatile double Kp[4] = {-0.53, -0.95, -0.01, -0.15};   // {-1.21, -0.6, -1.21, -0.6}
-volatile double Kv[4] = {-0.15, -0.06, -0.08, -0.08}; // {-100, -130, -100, -450}
-volatile double Kip[4] = {0, 0, 0, 0};                // {0, 0, 0, 0}
-volatile double Kbeta[4] = {0.23, 0.23, 0.23, 0.23};  // {25, 25, 25, 27}
-volatile double Kib[4] = {0, 0, 0, 0};                // {0 ,0 ,0 ,0}
-volatile double Ktheta[4] = {600, 600, 600, 600};     // {1500, 1800, 2500, 550}
-volatile double Komega[4] = {60, 60, 60, 60};         // {100, 150, 200, 60}
-volatile double Kit[4] = {0, 0, 0, 0};                // {0, 0, 0, -0.0001}
+// gains can change dynamically depending on the motion of the robot: {STOP and movement}
+volatile double Kp[4] = {0.5, 0.08};      // {-1.21, -0.6, -1.21, -0.6}
+volatile double Kv[4] = {-0.09, -0.11};  // {-100, -130, -100, -450}
+volatile double Kip[4] = {0.00013, 0};   // {0, 0, 0, 0}
+volatile double Kbeta[4] = {0.23, 0.23}; // {25, 25, 25, 27}
+volatile double Kib[4] = {0, 0};         // {0 ,0 ,0 ,0}
+volatile double Ktheta[4] = {600, 600};  // {1500, 1800, 2500, 550}
+volatile double Komega[4] = {60, 60};    // {100, 150, 200, 60}
+volatile double Kit[4] = {0, 0};         // {0, 0, 0, -0.0001}
 
 // STORING OF DATA FOR LATER ANALYSIS
 
@@ -98,8 +98,19 @@ void TC4_Handler()
     // tracking reference and velocity !! getCurrentVelocity() must be always called after getCurrentReference() !!
     tpRef = pRefTracking.getCurrentRefence();
     tvRef = pRefTracking.getCurrentVelocity();
-    // from reference tracking get the current motion state and choose the corresponding gains
-    uint8_t chosenGain = pRefTracking.getState(); //pRefTracking.getState();
+    // from reference tracking get the current motion state and choose the corresponding gain
+    // we will use one gain for stop state and other for all the movements states
+    static uint8_t lastChosenGain = 0;
+    uint8_t chosenGain = 0;
+    if (pRefTracking.getState() != STOP)
+      chosenGain = 1;
+    if (chosenGain != lastChosenGain)
+    {
+      pIntegral = 0;
+      betaIntegral = 0;
+      thetaIntegral = 0;
+    }
+    lastChosenGain = chosenGain;
 
     // CONTROL OF POSITION AND VELOCITY OF THE ROBOT
     // we assume the robot cannot change beta (orientation) yet
@@ -107,13 +118,13 @@ void TC4_Handler()
     double vMes = (omegaRight + omegaLeft) / 2;
     double posError = tpRef - pMes;
     pIntegral += posError;
-    double P_pos = Kp[chosenGain] * posError;       // proportional action on p
-    double D_pos = Kv[chosenGain] * (tvRef - vMes); // derivative action on p (velocity)
-    double I_pos = Kip[chosenGain] * pIntegral;     // integral action on p
+    double P_pos = Kp[chosenGain] * posError; // proportional action on p the output goes to the velocity ref
+    double I_pos = Kip[chosenGain] * pIntegral;
+    double D_pos = Kv[chosenGain] * (tvRef + P_pos + I_pos - vMes); // derivative action on p (velocity)
     // wind-up I_pos
-    I_pos = constrain(I_pos, -80, 80);
+    I_pos = constrain(I_pos, -MAX_PWM, MAX_PWM);
 
-    double pvControl = P_pos + D_pos + I_pos;
+    double pvControl = D_pos;
 
     // CONTROL OF THE ORIENTATION ANGLE OF THE ROBOT BETA
     double betaMes = (posRight - posLeft) * RAD_TO_DEG * (2 * PI) / NB_TICKS_PER_TURN; // in deg
