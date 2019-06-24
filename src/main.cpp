@@ -24,14 +24,14 @@ volatile double omegaRef = 0;                 // rad/s
 
 // CONTROLLER'S GAINS
 // gains can change dynamically depending on the motion of the robot: {STOP and movement}
-volatile double Kp[4] = {0.5, 0.08};      // {-1.21, -0.6, -1.21, -0.6}
-volatile double Kv[4] = {-0.09, -0.11};  // {-100, -130, -100, -450}
-volatile double Kip[4] = {0.00013, 0};   // {0, 0, 0, 0}
-volatile double Kbeta[4] = {0.23, 0.23}; // {25, 25, 25, 27}
-volatile double Kib[4] = {0, 0};         // {0 ,0 ,0 ,0}
-volatile double Ktheta[4] = {600, 600};  // {1500, 1800, 2500, 550}
-volatile double Komega[4] = {60, 60};    // {100, 150, 200, 60}
-volatile double Kit[4] = {0, 0};         // {0, 0, 0, -0.0001}
+volatile double Kp[2] = {0.5, 0.08};      // {-1.21, -0.6, -1.21, -0.6}
+volatile double Kv[2] = {-0.09, -0.11};  // {-100, -130, -100, -450}
+volatile double Kip[2] = {0.00013, 0};   // {0, 0, 0, 0}
+volatile double Kbeta[2] = {0.23, 0.23}; // {25, 25, 25, 27}
+volatile double Kib[2] = {0, 0};         // {0 ,0 ,0 ,0}
+volatile double Ktheta[2] = {600, 600};  // {1500, 1800, 2500, 550}
+volatile double Komega[2] = {60, 60};    // {100, 150, 200, 60}
+volatile double Kit[2] = {0, 0};         // {0, 0, 0, -0.0001}
 
 // STORING OF DATA FOR LATER ANALYSIS
 
