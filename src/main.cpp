@@ -24,7 +24,7 @@ volatile double omegaRef = 0;                 // rad/s
 
 // CONTROLLER'S GAINS
 // gains can change dynamically depending on the motion of the robot: {ACCELERATE, CONST_VELOCITY, DECELERATE, STOP}
-volatile double Kp[4] = {-0.53, -0.95, -0.01, -0.15};   // {-1.21, -0.6, -1.21, -0.6}
+volatile double Kp[4] = {-0.53, -0.095, -0.01, -0.15}; // {-1.21, -0.6, -1.21, -0.6}
 volatile double Kv[4] = {-0.15, -0.06, -0.08, -0.08}; // {-100, -130, -100, -450}
 volatile double Kip[4] = {0, 0, 0, 0};                // {0, 0, 0, 0}
 volatile double Kbeta[4] = {0.23, 0.23, 0.23, 0.23};  // {25, 25, 25, 27}
@@ -77,6 +77,11 @@ void TC4_Handler()
   {
     // use this counter i to do things with a period of more than 1 ms if needed
     static uint16_t i = 0;
+
+    if (i == 5000)
+    {
+      pRefTracking.setReference(7000);
+    }
 
     // meassure of encoder values for both wheels
     int32_t posRight = getEncoder(RIGHT);
