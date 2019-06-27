@@ -56,23 +56,23 @@ void updateGain(char whichGain)
   switch (whichGain)
   {
   case 'p':
-    for (uint8_t i = 0; i < 4; i++)
+    for (uint8_t i = 0; i < 2; i++)
       Kp[i] = ble.parseFloat();
     break;
   case 'v':
-    for (uint8_t i = 0; i < 4; i++)
+    for (uint8_t i = 0; i < 2; i++)
       Kv[i] = ble.parseFloat();
     break;
   case 'b':
-    for (uint8_t i = 0; i < 4; i++)
+    for (uint8_t i = 0; i < 2; i++)
       Kbeta[i] = ble.parseFloat();
     break;
   case 't':
-    for (uint8_t i = 0; i < 4; i++)
+    for (uint8_t i = 0; i < 2; i++)
       Ktheta[i] = ble.parseFloat();
     break;
   case 'o':
-    for (uint8_t i = 0; i < 4; i++)
+    for (uint8_t i = 0; i < 2; i++)
       Komega[i] = ble.parseFloat();
     break;
   case 'i':
@@ -80,15 +80,15 @@ void updateGain(char whichGain)
     switch (whichIntegralGain)
     {
     case 'p':
-      for (uint8_t i = 0; i < 4; i++)
+      for (uint8_t i = 0; i < 2; i++)
         Kip[i] = ble.parseFloat();
       break;
     case 'b':
-      for (uint8_t i = 0; i < 4; i++)
+      for (uint8_t i = 0; i < 2; i++)
         Kib[i] = ble.parseFloat();
       break;
     case 't':
-      for (uint8_t i = 0; i < 4; i++)
+      for (uint8_t i = 0; i < 2; i++)
         Kit[i] = ble.parseFloat();
       break;
     default:

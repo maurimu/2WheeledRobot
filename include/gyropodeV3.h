@@ -45,14 +45,14 @@ Kbeta: orientation proportional gain, same as Kp
 Ktheta: balance angle proportional gain, same as Kp and Kbeta
 Komega: balance angle derivative gain, same as Kv
 -------------------------------------------------------------------------------------------*/
-extern volatile double Kp[4];
-extern volatile double Kv[4];
-extern volatile double Kip[4];
-extern volatile double Kbeta[4];
-extern volatile double Kib[4];
-extern volatile double Ktheta[4];
-extern volatile double Komega[4];
-extern volatile double Kit[4];
+extern volatile double Kp[2];
+extern volatile double Kv[2];
+extern volatile double Kip[2];
+extern volatile double Kbeta[2];
+extern volatile double Kib[2];
+extern volatile double Ktheta[2];
+extern volatile double Komega[2];
+extern volatile double Kit[2];
 
 // The main switch... should be set to true if we want the contorller to work
 // GLOBAL VARIABLE !
